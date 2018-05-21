@@ -70,8 +70,7 @@ import static com.mapbox.mapboxsdk.style.expressions.Expression.zoom;
  *
  * @since 0.4.0
  */
-public class NavigationMapRoute implements ProgressChangeListener, MapView.OnMapChangedListener,
-  MapboxMap.OnMapClickListener {
+public class NavigationMapRoute implements MapView.OnMapChangedListener, MapboxMap.OnMapClickListener {
 
   private static final String CONGESTION_KEY = "congestion";
   private static final String SOURCE_KEY = "source";
@@ -120,6 +119,14 @@ public class NavigationMapRoute implements ProgressChangeListener, MapView.OnMap
   private String belowLayer;
   private boolean alternativesVisible;
   private OnRouteSelectionChangeListener onRouteSelectionChangeListener;
+  private ProgressChangeListener progressChangeListener = new ProgressChangeListener() {
+    @Override
+    public void onProgressChange(Location location, RouteProgress routeProgress) {
+      if (!routeProgress.directionsRoute().equals(directionsRoutes.get(primaryRouteIndex))) {
+        addRoute(routeProgress.directionsRoute());
+      }
+    }
+  };
 
   /**
    * Construct an instance of {@link NavigationMapRoute}.
@@ -258,6 +265,16 @@ public class NavigationMapRoute implements ProgressChangeListener, MapView.OnMap
   public void setOnRouteSelectionChangeListener(
     @Nullable OnRouteSelectionChangeListener onRouteSelectionChangeListener) {
     this.onRouteSelectionChangeListener = onRouteSelectionChangeListener;
+  }
+
+  /**
+   * Add the {@link ProgressChangeListener} to {@link MapboxNavigation}
+   *
+   * @param navigation the navigation needed to add the progress change listener
+   * @since 0.14.0
+   */
+  public void addProgressChangeListener(MapboxNavigation navigation) {
+    navigation.addProgressChangeListener(progressChangeListener);
   }
 
   /**
@@ -595,7 +612,7 @@ public class NavigationMapRoute implements ProgressChangeListener, MapView.OnMap
   private void addListeners() {
     mapboxMap.addOnMapClickListener(this);
     if (navigation != null) {
-      navigation.addProgressChangeListener(this);
+      navigation.addProgressChangeListener(progressChangeListener);
     }
     mapView.addOnMapChangedListener(this);
   }
@@ -701,23 +718,6 @@ public class NavigationMapRoute implements ProgressChangeListener, MapView.OnMap
       drawRoutes();
       addDirectionWaypoints();
       showAlternativeRoutes(alternativesVisible);
-    }
-  }
-
-  /**
-   * Called when the user makes new progress during a navigation session. Used to determine whether
-   * or not a re-route has occurred and if so the route is redrawn to reflect the change.
-   *
-   * @param location      the users current location
-   * @param routeProgress a {@link RouteProgress} reflecting the users latest progress along the
-   *                      route
-   * @since 0.4.0
-   */
-  @Override
-  public void onProgressChange(Location location, RouteProgress routeProgress) {
-    // Check if the route's the same as the route currently drawn
-    if (!routeProgress.directionsRoute().equals(directionsRoutes.get(primaryRouteIndex))) {
-      addRoute(routeProgress.directionsRoute());
     }
   }
 

@@ -1,5 +1,6 @@
 package com.mapbox.services.android.navigation.ui.v5;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.Fragment;
 import android.arch.lifecycle.LifecycleObserver;
@@ -67,8 +68,8 @@ import java.util.List;
  *
  * @since 0.7.0
  */
-public class NavigationView extends CoordinatorLayout implements LifecycleObserver,
-  OnMapReadyCallback, MapboxMap.OnScrollListener, NavigationContract.View {
+public class NavigationView extends CoordinatorLayout implements LifecycleObserver, OnMapReadyCallback,
+  NavigationContract.View {
 
   private MapView mapView;
   private InstructionView instructionView;
@@ -85,6 +86,14 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
   private NavigationCamera camera;
   private LocationLayerPlugin locationLayer;
   private OnNavigationReadyCallback onNavigationReadyCallback;
+  private MapboxMap.OnScrollListener onScrollListener = new MapboxMap.OnScrollListener() {
+    @Override
+    public void onScroll() {
+      if (summaryBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
+        navigationPresenter.onMapScroll();
+      }
+    }
+  };
   private boolean resumeState;
   private boolean isInitialized;
 
@@ -144,8 +153,9 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
    * @param outState to store state variables
    */
   public void onSaveInstanceState(Bundle outState) {
-    outState.putInt(getContext().getString(R.string.bottom_sheet_state),
-      summaryBehavior.getState());
+    if (summaryBehavior != null) {
+      outState.putInt(getContext().getString(R.string.bottom_sheet_state), summaryBehavior.getState());
+    }
     outState.putBoolean(getContext().getString(R.string.recenter_btn_visible),
       recenterBtn.getVisibility() == View.VISIBLE);
     outState.putBoolean(getContext().getString(R.string.navigation_running), navigationViewModel.isRunning());
@@ -163,8 +173,8 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     boolean isVisible = savedInstanceState.getBoolean(getContext().getString(R.string.recenter_btn_visible));
     recenterBtn.setVisibility(isVisible ? View.VISIBLE : View.INVISIBLE);
     int bottomSheetState = savedInstanceState.getInt(getContext().getString(R.string.bottom_sheet_state));
-    resumeState = savedInstanceState.getBoolean(getContext().getString(R.string.navigation_running));
     resetBottomSheetState(bottomSheetState);
+    resumeState = savedInstanceState.getBoolean(getContext().getString(R.string.navigation_running));
   }
 
 
@@ -218,24 +228,7 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     initializeMapPadding();
     initializeLocationLayerObserver();
     initializeNavigationPresenter();
-    initializeClickListeners();
-    map.addOnScrollListener(NavigationView.this);
     onNavigationReadyCallback.onNavigationReady();
-  }
-
-  /**
-   * Listener this activity sets on the {@link MapboxMap}.
-   * <p>
-   * Used as a cue to hide the {@link SummaryBottomSheet} and stop the
-   * camera from following location updates.
-   *
-   * @since 0.6.0
-   */
-  @Override
-  public void onScroll() {
-    if (summaryBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
-      navigationPresenter.onMapScroll();
-    }
   }
 
   @Override
@@ -364,18 +357,38 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
    *
    * @param options with containing route / coordinate data
    */
+  @SuppressLint("MissingPermission")
   public void startNavigation(NavigationViewOptions options) {
     if (!isInitialized) {
+      initializeClickListeners();
+      map.addOnScrollListener(onScrollListener);
+      initializeSummaryBottomSheet();
       establish(options);
       navigationViewModel.initializeNavigation(options);
       initializeNavigationListeners(options, navigationViewModel.getNavigation());
       initializeNavigationCamera();
+      mapRoute.addProgressChangeListener(navigationViewModel.getNavigation());
       subscribeViewModels();
       isInitialized = true;
     } else {
       clearMarkers();
       navigationViewModel.updateNavigation(options);
+      locationLayer.setLocationLayerEnabled(true);
     }
+  }
+
+  /**
+   * Call this when the navigation session needs to end navigation without finishing the whole view
+   *
+   * @since 0.14.0
+   */
+  @SuppressLint("MissingPermission")
+  public void stopNavigation() {
+    navigationViewModel.stopNavigation();
+    locationLayer.setLocationLayerEnabled(false);
+    mapRoute.removeRoute();
+    clearMarkers();
+    map.removeOnScrollListener(onScrollListener);
   }
 
   /**
@@ -405,7 +418,6 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     inflate(getContext(), R.layout.navigation_view_layout, this);
     bind();
     initializeNavigationViewModel();
-    initializeSummaryBottomSheet();
     initializeNavigationEventDispatcher();
   }
 
@@ -456,9 +468,11 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
    * @param bottomSheetState retrieved from savedInstanceState
    */
   private void resetBottomSheetState(int bottomSheetState) {
-    boolean isShowing = bottomSheetState == BottomSheetBehavior.STATE_EXPANDED;
-    summaryBehavior.setHideable(!isShowing);
-    summaryBehavior.setState(bottomSheetState);
+    if (bottomSheetState > 0) {
+      boolean isShowing = bottomSheetState == BottomSheetBehavior.STATE_EXPANDED;
+      summaryBehavior.setHideable(!isShowing);
+      summaryBehavior.setState(bottomSheetState);
+    }
   }
 
   private boolean isChangingConfigurations() {

@@ -3,18 +3,22 @@ package com.mapbox.services.android.navigation.ui.v5.summary;
 import android.arch.lifecycle.LifecycleOwner;
 import android.arch.lifecycle.Observer;
 import android.content.Context;
+import android.graphics.drawable.Drawable;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
 import android.view.View;
 import android.widget.FrameLayout;
+import android.widget.ImageButton;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.mapbox.api.directions.v5.DirectionsCriteria;
 import com.mapbox.services.android.navigation.ui.v5.NavigationViewModel;
 import com.mapbox.services.android.navigation.ui.v5.R;
+import com.mapbox.services.android.navigation.ui.v5.ThemeSwitcher;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationTimeFormat;
 import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener;
 import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress;
@@ -177,6 +181,19 @@ public class SummaryBottomSheet extends FrameLayout {
     timeRemainingText = findViewById(R.id.timeRemainingText);
     arrivalTimeText = findViewById(R.id.arrivalTimeText);
     rerouteProgressBar = findViewById(R.id.rerouteProgressBar);
+    updateRouteOverviewImage();
+  }
+
+  private void updateRouteOverviewImage() {
+    ImageButton routeOverviewBtn = findViewById(R.id.routeOverviewBtn);
+    boolean isDarkThemeEnabled = ThemeSwitcher.isDarkThemeEnabled(getContext());
+    Drawable routeOverviewDrawable;
+    if (isDarkThemeEnabled) {
+      routeOverviewDrawable = ContextCompat.getDrawable(getContext(), R.drawable.ic_route_preview_dark);
+    } else {
+      routeOverviewDrawable = ContextCompat.getDrawable(getContext(), R.drawable.ic_route_preview);
+    }
+    routeOverviewBtn.setImageDrawable(routeOverviewDrawable);
   }
 
   /**

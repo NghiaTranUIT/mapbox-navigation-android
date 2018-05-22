@@ -110,6 +110,10 @@ public class NavigationMapboxMap {
     mapCamera.resetCameraPosition();
   }
 
+  public void showRouteOverview(int[] padding) {
+    mapCamera.showRouteOverview(padding);
+  }
+
   public void updateWaynameView(String wayname) {
     mapWayname.updateWaynameLayer(wayname, waynameLayer);
   }

@@ -67,6 +67,7 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
   private BottomSheetBehavior summaryBehavior;
   private ImageButton cancelBtn;
   private RecenterButton recenterBtn;
+  private ImageButton routeOverviewBtn;
 
   private NavigationPresenter navigationPresenter;
   private NavigationViewEventDispatcher navigationViewEventDispatcher;
@@ -279,15 +280,6 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     navigationMap.updateWaynameQueryMap(isEnabled);
   }
 
-  /**
-   * Called when the navigation session is finished.
-   * Can either be from a cancel event or if the user has arrived at their destination.
-   */
-  @Override
-  public void finishNavigationView() {
-    navigationViewEventDispatcher.onNavigationFinished();
-  }
-
   @Override
   public void takeScreenshot() {
     map.snapshot(new MapboxMap.SnapshotReadyCallback() {
@@ -327,6 +319,12 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
   @Override
   public void updateNavigationMap(Location location) {
     navigationMap.updateLocation(location);
+  }
+
+  @Override
+  public void updateCameraRouteOverview() {
+    int[] padding = ViewUtils.buildRouteOverviewPadding(instructionView, summaryBottomSheet);
+    navigationMap.showRouteOverview(padding);
   }
 
   /**
@@ -388,6 +386,7 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     summaryBottomSheet = findViewById(R.id.summaryBottomSheet);
     cancelBtn = findViewById(R.id.cancelBtn);
     recenterBtn = findViewById(R.id.recenterBtn);
+    routeOverviewBtn = findViewById(R.id.routeOverviewBtn);
   }
 
   private void initializeNavigationViewModel() {
@@ -487,7 +486,6 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     cancelBtn.setOnClickListener(new View.OnClickListener() {
       @Override
       public void onClick(View view) {
-        navigationPresenter.onCancelBtnClick();
         navigationViewEventDispatcher.onCancelNavigation();
       }
     });
@@ -495,6 +493,12 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
       @Override
       public void onClick(View view) {
         navigationPresenter.onRecenterClick();
+      }
+    });
+    routeOverviewBtn.setOnClickListener(new OnClickListener() {
+      @Override
+      public void onClick(View view) {
+        navigationPresenter.onRouteOverviewClick();
       }
     });
   }

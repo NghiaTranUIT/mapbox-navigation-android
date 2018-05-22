@@ -63,6 +63,17 @@ public class ThemeSwitcher {
   }
 
   /**
+   * Returns true if the current UI_MODE_NIGHT is enabled, false otherwise.
+   *
+   * @param context to retrieve the current configuration
+   */
+  public static boolean isDarkThemeEnabled(Context context) {
+    int uiMode = context.getResources().getConfiguration().uiMode
+      & Configuration.UI_MODE_NIGHT_MASK;
+    return uiMode == Configuration.UI_MODE_NIGHT_YES;
+  }
+
+  /**
    * Called in onCreate() to check the UI Mode (day or night)
    * and set the theme colors accordingly.
    *
@@ -70,17 +81,15 @@ public class ThemeSwitcher {
    * @param attrs   holding custom styles if any are set
    */
   static void setTheme(Context context, AttributeSet attrs) {
-    int uiMode = context.getResources().getConfiguration().uiMode
-      & Configuration.UI_MODE_NIGHT_MASK;
-    boolean darkThemeEnabled = uiMode == Configuration.UI_MODE_NIGHT_YES;
+    boolean darkThemeEnabled = isDarkThemeEnabled(context);
     updatePreferencesDarkEnabled(context, darkThemeEnabled);
 
     // Check for custom theme from NavigationLauncher
     if (shouldSetThemeFromPreferences(context)) {
       int prefLightTheme = retrieveThemeResIdFromPreferences(context, NavigationConstants.NAVIGATION_VIEW_LIGHT_THEME);
       int prefDarkTheme = retrieveThemeResIdFromPreferences(context, NavigationConstants.NAVIGATION_VIEW_DARK_THEME);
-      prefLightTheme = prefLightTheme == 0 ?  R.style.NavigationViewLight : prefLightTheme;
-      prefDarkTheme = prefLightTheme == 0 ?  R.style.NavigationViewDark : prefDarkTheme;
+      prefLightTheme = prefLightTheme == 0 ? R.style.NavigationViewLight : prefLightTheme;
+      prefDarkTheme = prefLightTheme == 0 ? R.style.NavigationViewDark : prefDarkTheme;
       context.setTheme(darkThemeEnabled ? prefDarkTheme : prefLightTheme);
       return;
     }

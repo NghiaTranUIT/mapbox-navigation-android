@@ -8,6 +8,8 @@ import com.google.gson.GsonBuilder;
 import com.mapbox.api.directions.v5.DirectionsAdapterFactory;
 import com.mapbox.api.directions.v5.models.DirectionsResponse;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
+import com.mapbox.core.constants.Constants;
+import com.mapbox.geojson.LineString;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.services.android.navigation.ui.v5.BaseTest;
@@ -17,9 +19,11 @@ import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress;
 import org.junit.Test;
 
 import java.io.IOException;
+import java.util.List;
 
 import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertNotNull;
+import static junit.framework.Assert.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -28,7 +32,7 @@ public class DynamicCameraTest extends BaseTest {
   private static final String DIRECTIONS_PRECISION_6 = "directions_v5_precision_6.json";
 
   @Test
-  public void sanity() throws Exception {
+  public void sanity() {
     MapboxMap mapboxMap = mock(MapboxMap.class);
     DynamicCamera cameraEngine = new DynamicCamera(mapboxMap);
 
@@ -145,6 +149,44 @@ public class DynamicCameraTest extends BaseTest {
     assertEquals(100f, bearing, DELTA);
   }
 
+  @Test
+  public void onInformationFromRoute_engineCreatesOverviewPointList() throws Exception {
+    MapboxMap mapboxMap = mock(MapboxMap.class);
+    DynamicCamera cameraEngine = new DynamicCamera(mapboxMap);
+    DirectionsRoute route = buildDirectionsRoute();
+    List<Point> routePoints = generateRouteCoordinates(route);
+    RouteInformation routeInformation = RouteInformation.create(route, null, null);
+
+    List<Point> overviewPoints = cameraEngine.overview(routeInformation);
+
+    assertEquals(routePoints, overviewPoints);
+  }
+
+  @Test
+  public void onInformationFromRouteProgress_engineCreatesOverviewPointList() throws Exception {
+    MapboxMap mapboxMap = mock(MapboxMap.class);
+    DynamicCamera cameraEngine = new DynamicCamera(mapboxMap);
+    RouteProgress routeProgress = buildDefaultRouteProgress(null);
+    DirectionsRoute route = routeProgress.directionsRoute();
+    List<Point> routePoints = generateRouteCoordinates(route);
+    RouteInformation routeInformation = RouteInformation.create(null, null, routeProgress);
+
+    List<Point> overviewPoints = cameraEngine.overview(routeInformation);
+
+    assertEquals(routePoints, overviewPoints);
+  }
+
+  @Test
+  public void noRouteInformation_engineCreatesEmptyOverviewPointList() {
+    MapboxMap mapboxMap = mock(MapboxMap.class);
+    DynamicCamera cameraEngine = new DynamicCamera(mapboxMap);
+    RouteInformation routeInformation = RouteInformation.create(null, null, null);
+
+    List<Point> overviewPoints = cameraEngine.overview(routeInformation);
+
+    assertTrue(overviewPoints.isEmpty());
+  }
+
   private Location buildDefaultLocationUpdate(double lng, double lat) {
     return buildLocationUpdate(lng, lat, System.currentTimeMillis());
   }
@@ -172,5 +214,13 @@ public class DynamicCameraTest extends BaseTest {
     String body = loadJsonFixture(DIRECTIONS_PRECISION_6);
     DirectionsResponse response = gson.fromJson(body, DirectionsResponse.class);
     return response.routes().get(0);
+  }
+
+  private List<Point> generateRouteCoordinates(DirectionsRoute route) {
+    if (route != null) {
+      LineString lineString = LineString.fromPolyline(route.geometry(), Constants.PRECISION_6);
+      return lineString.coordinates();
+    }
+    return null;
   }
 }

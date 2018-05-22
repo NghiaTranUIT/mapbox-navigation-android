@@ -9,6 +9,10 @@ import android.util.Base64;
 import android.util.TypedValue;
 import android.view.View;
 
+import com.mapbox.services.android.navigation.ui.v5.R;
+import com.mapbox.services.android.navigation.ui.v5.instruction.InstructionView;
+import com.mapbox.services.android.navigation.ui.v5.summary.SummaryBottomSheet;
+
 import java.io.ByteArrayOutputStream;
 
 public class ViewUtils {
@@ -51,5 +55,16 @@ public class ViewUtils {
   public static float dpToPx(Context context, int dp) {
     Resources resources = context.getResources();
     return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, resources.getDisplayMetrics());
+  }
+
+  public static int[] buildRouteOverviewPadding(InstructionView instructionView,
+                                                SummaryBottomSheet summaryBottomSheet) {
+    Context context = instructionView.getContext();
+    Resources resources = context.getResources();
+    int topBottomPadding = (int) resources.getDimension(R.dimen.route_overview_top_bottom_padding);
+    int paddingBuffer = (int) resources.getDimension(R.dimen.route_overview_buffer_padding);
+    int instructionHeight = (int) (resources.getDimension(R.dimen.instruction_layout_height) + paddingBuffer);
+    int summaryHeight = summaryBottomSheet.getMeasuredHeight() + paddingBuffer;
+    return new int[] {topBottomPadding, instructionHeight, topBottomPadding, summaryHeight};
   }
 }

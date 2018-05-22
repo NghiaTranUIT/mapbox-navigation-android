@@ -26,10 +26,6 @@ class NavigationPresenter {
     view.hideRecenterBtn();
   }
 
-  void onCancelBtnClick() {
-    view.finishNavigationView();
-  }
-
   void onMapScroll() {
     if (!view.isSummaryBottomSheetHidden()) {
       view.setSummaryBehaviorHideable(true);
@@ -65,5 +61,10 @@ class NavigationPresenter {
       resumeState = false;
     }
     view.updateNavigationMap(location);
+  }
+
+  public void onRouteOverviewClick() {
+    view.updateCameraRouteOverview();
+    view.showRecenterBtn();
   }
 }

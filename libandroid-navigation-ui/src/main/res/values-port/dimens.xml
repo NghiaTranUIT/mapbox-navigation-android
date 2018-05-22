@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="instruction_layout_height">96dp</dimen>
+    <dimen name="route_overview_top_bottom_padding">75dp</dimen>
+    <dimen name="route_overview_buffer_padding">25dp</dimen>
+</resources>

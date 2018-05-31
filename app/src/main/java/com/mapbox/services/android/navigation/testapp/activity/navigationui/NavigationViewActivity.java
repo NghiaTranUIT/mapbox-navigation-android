@@ -268,6 +268,7 @@ public class NavigationViewActivity extends AppCompatActivity implements OnMapRe
       .accessToken(Mapbox.getAccessToken())
       .origin(currentLocation)
       .destination(destination)
+      .addApproaches(DirectionsCriteria.APPROACH_UNRESTRICTED, DirectionsCriteria.APPROACH_UNRESTRICTED)
       .alternatives(true);
     setFieldsFromSharedPreferences(builder);
     builder.build()

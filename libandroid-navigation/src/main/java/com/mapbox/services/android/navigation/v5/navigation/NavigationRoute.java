@@ -441,6 +441,26 @@ public final class NavigationRoute {
     }
 
     /**
+     * Indicates from which side of the road to approach a waypoint.
+     * Accepts  unrestricted (default), curb or null.
+     * If set to  unrestricted , the route can approach waypoints
+     * from either side of the road. If set to  curb , the route will be returned
+     * so that on arrival, the waypoint will be found on the side that corresponds with the
+     * driving_side of the region in which the returned route is located.
+     * If provided, the list of approaches must be the same length as the list of waypoints.
+     *
+     * @param approaches null if you'd like the default approaches,
+     *                   else one of the options found in
+     *                   {@link com.mapbox.api.directions.v5.DirectionsCriteria.ApproachesCriteria}.
+     * @return this builder for chaining options together
+     * @since 0.14.0
+     */
+    public Builder addApproaches(String... approaches) {
+      directionsBuilder.addApproaches(approaches);
+      return this;
+    }
+
+    /**
      * Optionally create a {@link Builder} based on all variables
      * from given {@link RouteOptions}.
      * <p>
@@ -488,6 +508,11 @@ public final class NavigationRoute {
 
       if (!TextUtils.isEmpty(options.annotations())) {
         directionsBuilder.annotations(options.annotations());
+      }
+
+      if (!TextUtils.isEmpty(options.approaches())) {
+        String[] approaches = options.approaches().split(";");
+        directionsBuilder.addApproaches(approaches);
       }
 
       return this;

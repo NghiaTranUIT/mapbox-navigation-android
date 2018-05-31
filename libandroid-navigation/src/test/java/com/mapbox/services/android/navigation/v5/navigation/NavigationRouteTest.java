@@ -60,6 +60,20 @@ public class NavigationRouteTest extends BaseTest {
   }
 
   @Test
+  public void addApproachesIncludedInRequest() throws Exception {
+    NavigationRoute navigationRoute = NavigationRoute.builder(context, localeUtils)
+      .accessToken(ACCESS_TOKEN)
+      .origin(Point.fromLngLat(1.0, 2.0))
+      .destination(Point.fromLngLat(1.0, 5.0))
+      .profile(DirectionsCriteria.PROFILE_CYCLING)
+      .addApproaches(DirectionsCriteria.APPROACH_CURB, DirectionsCriteria.APPROACH_UNRESTRICTED)
+      .build();
+
+    assertThat(navigationRoute.getCall().request().url().toString(),
+      containsString("curb"));
+  }
+
+  @Test
   public void addingPointAndBearingKeepsCorrectOrder() throws Exception {
     NavigationRoute navigationRoute = NavigationRoute.builder(context, localeUtils)
       .accessToken(ACCESS_TOKEN)
@@ -102,6 +116,7 @@ public class NavigationRouteTest extends BaseTest {
       .voiceUnits(DirectionsCriteria.METRIC)
       .user("example_user")
       .geometries("mocked_geometries")
+      .approaches("curb;unrestricted")
       .build();
 
     NavigationRoute navigationRoute = NavigationRoute.builder(context, localeUtils)
@@ -118,5 +133,6 @@ public class NavigationRouteTest extends BaseTest {
     assertThat(request, containsString("example_user"));
     assertThat(request, containsString("language=en"));
     assertThat(request, containsString("walking"));
+    assertThat(request, containsString("curb"));
   }
 }

@@ -271,7 +271,7 @@ public class NavigationMapRoute implements MapView.OnMapChangedListener, MapboxM
    * Add the {@link ProgressChangeListener} to {@link MapboxNavigation}
    *
    * @param navigation the navigation needed to add the progress change listener
-   * @since 0.14.0
+   * @since 0.15.0
    */
   public void addProgressChangeListener(MapboxNavigation navigation) {
     navigation.addProgressChangeListener(progressChangeListener);

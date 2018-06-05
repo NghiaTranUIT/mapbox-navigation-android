@@ -34,14 +34,12 @@ import com.mapbox.services.android.navigation.ui.v5.instruction.InstructionView;
 import com.mapbox.services.android.navigation.ui.v5.listeners.NavigationListener;
 import com.mapbox.services.android.navigation.ui.v5.summary.SummaryBottomSheet;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
-import com.mapbox.services.android.navigation.v5.navigation.NavigationUnitType;
 import com.mapbox.services.android.navigation.v5.routeprogress.ProgressChangeListener;
 import com.mapbox.services.android.navigation.v5.routeprogress.RouteProgress;
 import com.mapbox.services.android.navigation.v5.utils.LocaleUtils;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -123,15 +121,17 @@ public class PaellaDeliveryActivity extends AppCompatActivity implements OnNavig
   }
 
   private void fetchRoute() {
-    Locale locale = LocaleUtils.getDeviceLocale(this);
-    NavigationRoute builder = NavigationRoute.builder()
+    LocaleUtils localeUtils = new LocaleUtils();
+    String deviceLanguage = localeUtils.inferDeviceLanguage(this);
+    String deviceUnitType = localeUtils.getUnitTypeForDeviceLocale(this);
+    NavigationRoute builder = NavigationRoute.builder(this)
       .accessToken(getString(R.string.mapbox_access_token))
       .origin(origin)
       .destination(destination)
       .addWaypoint(pickup)
       .alternatives(true)
-      .language(locale)
-      .voiceUnits(NavigationUnitType.getDirectionsCriteriaUnitType(NavigationUnitType.NONE_SPECIFIED, locale))
+      .language(deviceLanguage)
+      .voiceUnits(deviceUnitType)
       .build();
     builder.getRoute(this);
     updateLoadingTo(true);
@@ -281,7 +281,6 @@ public class PaellaDeliveryActivity extends AppCompatActivity implements OnNavig
 
   @Override
   public void onBackPressed() {
-    // If the navigation view didn't need to do anything, call super
     if (!navigationView.onBackPressed()) {
       super.onBackPressed();
     }

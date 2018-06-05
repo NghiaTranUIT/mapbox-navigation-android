@@ -21,7 +21,6 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 
-import com.mapbox.android.gestures.MoveGestureDetector;
 import com.mapbox.api.directions.v5.models.DirectionsRoute;
 import com.mapbox.geojson.Point;
 import com.mapbox.mapboxsdk.annotations.Icon;
@@ -87,24 +86,7 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
   private NavigationCamera camera;
   private LocationLayerPlugin locationLayer;
   private OnNavigationReadyCallback onNavigationReadyCallback;
-  private MapboxMap.OnMoveListener onMoveListener = new MapboxMap.OnMoveListener() {
-    @Override
-    public void onMoveBegin(MoveGestureDetector detector) {
-      // Intentionally empty
-    }
-
-    @Override
-    public void onMove(MoveGestureDetector detector) {
-      // Intentionally empty
-    }
-
-    @Override
-    public void onMoveEnd(MoveGestureDetector detector) {
-      if (summaryBehavior.getState() != BottomSheetBehavior.STATE_HIDDEN) {
-        navigationPresenter.onMapScroll();
-      }
-    }
-  };
+  private MapboxMap.OnMoveListener onMoveListener;
   private boolean resumeState;
   private boolean isInitialized;
 
@@ -371,16 +353,7 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
   @SuppressLint("MissingPermission")
   public void startNavigation(NavigationViewOptions options) {
     if (!isInitialized) {
-      initializeClickListeners();
-      map.addOnMoveListener(onMoveListener);
-      initializeSummaryBottomSheet();
-      establish(options);
-      navigationViewModel.initializeNavigation(options);
-      initializeNavigationListeners(options, navigationViewModel.getNavigation());
-      initializeNavigationCamera();
-      mapRoute.addProgressChangeListener(navigationViewModel.getNavigation());
-      subscribeViewModels();
-      isInitialized = true;
+      initializeNavigation(options);
     } else {
       clearMarkers();
       navigationViewModel.updateNavigation(options);
@@ -391,7 +364,7 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
   /**
    * Call this when the navigation session needs to end navigation without finishing the whole view
    *
-   * @since 0.14.0
+   * @since 0.15.0
    */
   @SuppressLint("MissingPermission")
   public void stopNavigation() {
@@ -399,7 +372,9 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     locationLayer.setLocationLayerEnabled(false);
     mapRoute.removeRoute();
     clearMarkers();
-    map.removeOnMoveListener(onMoveListener);
+    if (onMoveListener != null) {
+      map.removeOnMoveListener(onMoveListener);
+    }
   }
 
   /**
@@ -538,6 +513,19 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     navigationPresenter = new NavigationPresenter(this);
   }
 
+  private void initializeNavigation(NavigationViewOptions options) {
+    initializeClickListeners();
+    initializeSummaryBottomSheet();
+    initializeOnMoveListener();
+    establish(options);
+    navigationViewModel.initializeNavigation(options);
+    initializeNavigationListeners(options, navigationViewModel.getNavigation());
+    initializeNavigationCamera();
+    mapRoute.addProgressChangeListener(navigationViewModel.getNavigation());
+    subscribeViewModels();
+    isInitialized = true;
+  }
+
   private void initializeClickListeners() {
     cancelBtn.setOnClickListener(new View.OnClickListener() {
       @Override
@@ -552,6 +540,11 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
         navigationPresenter.onRecenterClick();
       }
     });
+  }
+
+  private void initializeOnMoveListener() {
+    onMoveListener = new NavigationOnMoveListener(navigationPresenter, summaryBehavior);
+    map.addOnMoveListener(onMoveListener);
   }
 
   private void clearMarkers() {

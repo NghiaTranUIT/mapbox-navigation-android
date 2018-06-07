@@ -36,6 +36,8 @@ import com.mapbox.services.android.navigation.v5.navigation.NavigationRoute;
 import com.mapbox.services.android.navigation.v5.navigation.NavigationTimeFormat;
 import com.mapbox.services.android.navigation.v5.utils.LocaleUtils;
 
+import static com.mapbox.services.android.navigation.ui.v5.utils.ViewUtils.buildRouteOverviewPadding;
+
 /**
  * View that creates the drop-in UI.
  * <p>
@@ -272,6 +274,7 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     navigationMap.updateWaynameView(wayname);
   }
 
+  @Override
   public void updateWaynameVisibility(boolean isVisible) {
     navigationMap.updateWaynameVisibility(isVisible);
   }
@@ -323,7 +326,7 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
 
   @Override
   public void updateCameraRouteOverview() {
-    int[] padding = ViewUtils.buildRouteOverviewPadding(instructionView, summaryBottomSheet);
+    int[] padding = buildRouteOverviewPadding(getContext());
     navigationMap.showRouteOverview(padding);
   }
 
@@ -458,17 +461,6 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
     }
   }
 
-  /**
-   * Create a top map padding value that pushes the focal point
-   * of the map to the bottom of the screen (above the bottom sheet).
-   */
-  private int createDefaultMapTopPadding() {
-    int mapViewHeight = mapView.getHeight();
-    int bottomSheetHeight = summaryBottomSheet.getHeight();
-    return mapViewHeight - (bottomSheetHeight * 4);
-  }
-
-
   private void initializeNavigationPresenter() {
     navigationPresenter = new NavigationPresenter(this);
   }
@@ -540,7 +532,6 @@ public class NavigationView extends CoordinatorLayout implements LifecycleObserv
 
   private void initializeNavigationMapboxMap(NavigationViewOptions options, MapboxNavigation navigation) {
     navigationMap = new NavigationMapboxMap(mapView, map, navigation);
-    navigationMap.updateDefaultMapTopPadding(createDefaultMapTopPadding());
     navigationMap.updateWaynameQueryMap(options.waynameChipEnabled());
   }
 

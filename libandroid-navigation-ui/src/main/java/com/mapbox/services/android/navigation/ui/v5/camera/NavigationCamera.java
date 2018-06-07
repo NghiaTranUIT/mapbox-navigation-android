@@ -36,7 +36,6 @@ import java.util.List;
 public class NavigationCamera implements LifecycleObserver {
 
   private static final long MAX_ANIMATION_DURATION_MS = 1500;
-  private static final int[] OVERVIEW_MAP_PADDING = {0, 0, 0, 0};
 
   private MapboxMap mapboxMap;
   private MapboxNavigation navigation;
@@ -44,7 +43,6 @@ public class NavigationCamera implements LifecycleObserver {
   private RouteProgress currentRouteProgress;
   private boolean trackingEnabled = true;
   private long locationUpdateTimestamp;
-  private int[] defaultMapPadding = {0, 0, 0, 0};
   private ProgressChangeListener progressChangeListener = new ProgressChangeListener() {
     @Override
     public void onProgressChange(Location location, RouteProgress routeProgress) {
@@ -144,7 +142,6 @@ public class NavigationCamera implements LifecycleObserver {
    */
   public void resetCameraPosition() {
     trackingEnabled = true;
-    resetMapPadding(defaultMapPadding);
     if (currentRouteInformation != null) {
       if (navigation.getCameraEngine() instanceof DynamicCamera) {
         ((DynamicCamera) navigation.getCameraEngine()).forceResetZoomLevel();
@@ -154,14 +151,9 @@ public class NavigationCamera implements LifecycleObserver {
   }
 
   public void showRouteOverview(int[] padding) {
-    resetMapPadding(OVERVIEW_MAP_PADDING);
     trackingEnabled = false;
     RouteInformation routeInformation = buildRouteInformationFromRouteProgress(currentRouteProgress);
     animateCameraForRouteOverview(routeInformation, padding);
-  }
-
-  public void updateDefaultPadding(int[] defaultMapPadding) {
-    this.defaultMapPadding = defaultMapPadding;
   }
 
   /**
@@ -214,10 +206,6 @@ public class NavigationCamera implements LifecycleObserver {
       return RouteInformation.create(routeProgress.directionsRoute(), null, null);
     }
     return RouteInformation.create(null, null, null);
-  }
-
-  private void resetMapPadding(int[] padding) {
-    mapboxMap.setPadding(padding[0], padding[1], padding[2], padding[3]);
   }
 
   /**

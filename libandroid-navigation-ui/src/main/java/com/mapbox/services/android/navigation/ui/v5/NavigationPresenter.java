@@ -23,6 +23,7 @@ class NavigationPresenter {
     view.setSummaryBehaviorHideable(false);
     view.setSummaryBehaviorState(BottomSheetBehavior.STATE_EXPANDED);
     view.resetCameraPosition();
+    view.updateWaynameVisibility(true);
     view.hideRecenterBtn();
   }
 
@@ -42,6 +43,7 @@ class NavigationPresenter {
 
   void onRouteUpdate(DirectionsRoute directionsRoute) {
     view.drawRoute(directionsRoute);
+    view.updateWaynameVisibility(true);
     if (!resumeState) {
       view.startCamera(directionsRoute);
     }
@@ -64,6 +66,7 @@ class NavigationPresenter {
   }
 
   public void onRouteOverviewClick() {
+    view.updateWaynameVisibility(false);
     view.updateCameraRouteOverview();
     view.showRecenterBtn();
   }

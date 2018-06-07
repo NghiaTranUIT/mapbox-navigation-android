@@ -28,6 +28,16 @@ public class NavigationPresenterTest {
   }
 
   @Test
+  public void onRouteOverviewButtonClick_mapWaynameIsHidden() {
+    NavigationContract.View view = mock(NavigationContract.View.class);
+    NavigationPresenter presenter = new NavigationPresenter(view);
+
+    presenter.onRouteOverviewClick();
+
+    verify(view).updateWaynameVisibility(false);
+  }
+
+  @Test
   public void onRecenterBtnClick_recenterBtnIsHidden() {
     NavigationContract.View view = mock(NavigationContract.View.class);
     NavigationPresenter presenter = new NavigationPresenter(view);
@@ -45,5 +55,15 @@ public class NavigationPresenterTest {
     presenter.onRecenterClick();
 
     verify(view).resetCameraPosition();
+  }
+
+  @Test
+  public void onRecenterBtnClick_mapWaynmeIsShown() {
+    NavigationContract.View view = mock(NavigationContract.View.class);
+    NavigationPresenter presenter = new NavigationPresenter(view);
+
+    presenter.onRecenterClick();
+
+    verify(view).updateWaynameVisibility(true);
   }
 }

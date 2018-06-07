@@ -18,7 +18,7 @@
         android:id="@+id/summaryPeekLayout"
         layout="@layout/summary_peek_layout"
         android:layout_width="match_parent"
-        android:layout_height="72dp"
+        android:layout_height="@dimen/summary_bottomsheet_height"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
